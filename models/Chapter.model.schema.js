@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 import Question from './Question.model.schema.js';
 
 const ChapterSchema = new Schema({
-    name: { type: String, required: true },
+    name: { type: String, required: [true, "Name is required!"] },
     description: { type: String },
     questions: [{ type: Schema.Types.ObjectId, ref: 'Question' }]
 });
