@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
+import Question from './Question.model.schema.js';
 
 const ChapterSchema = new Schema({
     name: { type: String, required: [true, "Name is required!"] },
@@ -7,5 +8,5 @@ const ChapterSchema = new Schema({
     questions: [{ type: Schema.Types.ObjectId, ref: 'Question' }]
 });
   
-module.exports = mongoose.model('Chapter', ChapterSchema);
-  
+const Chapter = mongoose.model('Chapter', ChapterSchema);
+export default Chapter;

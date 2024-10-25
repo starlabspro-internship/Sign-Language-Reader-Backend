@@ -13,5 +13,7 @@ const QuestionSchema = new Schema({
       solution_correct: { type: Boolean, required: [true, "Solution is required!"] }
     }]
 });
-
-export default mongoose.model('Question', QuestionSchema); // Eksport default
+  
+const Question = mongoose.model('Question', QuestionSchema);
+export default Question;
+  

@@ -5,6 +5,7 @@ import { PORT, DB_LINK } from './configuration.js';
 import userRoutes from './routes/user.routes.js';
 import questionRoutes from './routes/question.routes.js'; 
 
+import chapterRoutes from './routes/chapter.routes.js';
 const app = express();
 
 // Middleware to parse JSON bodies
@@ -14,6 +15,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/questions', questionRoutes);
+app.use('/api/chapters', chapterRoutes);
 
 // Connect to the database and start the server
 mongoose.connect(DB_LINK)
