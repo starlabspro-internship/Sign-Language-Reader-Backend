@@ -95,7 +95,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-
 // D
 export const deleteUser = async (req, res) => {
   try {

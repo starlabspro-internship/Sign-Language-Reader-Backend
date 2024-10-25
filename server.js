@@ -1,13 +1,14 @@
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import mongoose from 'mongoose';
 import { PORT, DB_LINK } from './configuration.js';
 import userRoutes from './routes/user.routes.js';
+
 const app = express();
 
-// parse json body midelware
 app.use(express.json());
+app.use(cookieParser());
 
-// routat
 app.use('/api/users', userRoutes);
 
 mongoose.connect(DB_LINK)
