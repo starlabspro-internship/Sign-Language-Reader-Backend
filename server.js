@@ -1,13 +1,15 @@
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import mongoose from 'mongoose';
 import { PORT, DB_LINK } from './configuration.js';
 import userRoutes from './routes/user.routes.js';
-import questionRoutes from './routes/question.routes.js';  
+import questionRoutes from './routes/question.routes.js'; 
 
 const app = express();
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use('/api/users', userRoutes);
