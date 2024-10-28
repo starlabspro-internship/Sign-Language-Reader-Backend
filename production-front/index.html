@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Sign</title>
+</head>
+<body>
+
+    <form id="signForm" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="Sign Name" required />
+        <input type="file" name="signImage" required />
+        <button type="submit">Upload Sign</button>
+    </form>
+
+    <br>
+
+    <input type="text" id="translateInput" placeholder="Write words to Translate" />
+        <button id="translateButton">Translate</button>
+    <div id="translationResults"></div>
+
+
+    <script src="app.js"></script>
+</body>
+</html>
