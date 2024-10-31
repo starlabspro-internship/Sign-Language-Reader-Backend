@@ -1,5 +1,62 @@
 // per me kriju
 
+document.getElementById("loginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const useremail = formData.get("useremail");
+    const userpassword = formData.get("userpassword");
+
+    try {
+        const response = await fetch("https://localhost:5000/api/users/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ useremail, userpassword }),
+            credentials: "include" // ensures cookies are sent with requests
+          });       
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Logged in successfully:", data);
+            alert("Logged in successfully!");
+            event.target.reset();
+
+        } else {
+            const errorText = await response.text();
+            console.error("Login error:", errorText);
+            alert("Login failed. Error: " + errorText);
+        }
+    } catch (error) {
+        console.error("Network error:", error);
+        alert("Network error occurred.");
+    }
+});
+
+//Logout
+document.getElementById("logoutButton").addEventListener("click", async () => {
+    try {
+        const response = await fetch("https://localhost:5000/api/users/logout", {
+            method: "POST",
+            credentials: "include" 
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data.msg);
+            alert("Logged out successfully!");
+        } else {
+            const errorText = await response.text();
+            console.error("Logout error:", errorText);
+            alert("Logout failed. Error: " + errorText);
+        }
+    } catch (error) {
+        console.error("Network error:", error);
+        alert("Network error occurred.");
+    }
+});
+
 document.getElementById("signForm").addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -56,4 +113,31 @@ document.getElementById("translateButton").addEventListener("click", async () =>
         console.error("Error fetching translation:", error);
     }
 });
+
+document.getElementById("checkLoginStatusButton").addEventListener("click", async () => {
+    try {
+        const response = await fetch('https://localhost:5000/api/users/me', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById("loginStatus").textContent = `Logged in as: ${data.userId}`;
+            console.log("Login status:", data);
+        } else {
+            const errorText = await response.text();
+            document.getElementById("loginStatus").textContent = "Not logged in.";
+            console.error("Error checking login status:", errorText);
+        }
+    } catch (error) {
+        console.error("Network error:", error);
+        alert("Network error occurred.");
+    }
+});
+
+
 

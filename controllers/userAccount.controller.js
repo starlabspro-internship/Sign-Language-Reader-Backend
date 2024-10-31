@@ -2,28 +2,35 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import User from '../models/User.model.schema.js'; 
-import config from '../configuration.js'; 
+import config from '../configuration.js';
 
-const createSendToken = (user, res) => {
-    const payload = { user: { id: user.id } };
-  
-    const token = jwt.sign(payload, config.JWT_SECRET, { expiresIn: '15m' }); // Tokeni kryhet per 15 minuta
-  
-    const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN_SECRET, { expiresIn: '7d' }); 
-  
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 15 * 60 * 1000 
-    });
-  
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000 
-    });
+export const createSendToken = (user, res) => {
+  const payload = { user: { id: user.id } };
 
-    res.json({ msg: 'Authentication successful!', userId: user.id });
+  const token = jwt.sign(payload, config.JWT_SECRET, { expiresIn: '15m' });
+  const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: true, 
+    sameSite: 'None', 
+    maxAge: 15 * 60 * 1000
+  });
+  
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'None',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });  
+  
+  console.log("Token and refreshToken cookies set:", token, refreshToken);
+  res.json({ 
+    msg: 'Authentication successful!', 
+    userId: user.id,
+    token,
+    refreshToken 
+  });
 };
   
 export const signup = async (req, res) => {

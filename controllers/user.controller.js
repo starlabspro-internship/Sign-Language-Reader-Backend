@@ -1,5 +1,13 @@
 import bcrypt from 'bcrypt';
 import User from '../models/User.model.schema.js';
+import cloudinary from 'cloudinary';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '../configuration.js';
+
+cloudinary.v2.config({
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET
+});
 
 // create
 export const createUser = async (req, res) => {
@@ -26,7 +34,15 @@ export const createUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userpassword, salt);
 
-    const user = new User({ ...otherData, userpassword: hashedPassword, useremail });
+    let profileImageUrl = null;
+    if (req.file) {
+      const uploadResult = await cloudinary.v2.uploader.upload(req.file.path, {
+        folder: 'user_profiles'
+      });
+      profileImageUrl = uploadResult.secure_url;
+    }
+
+    const user = new User({ ...otherData, userpassword: hashedPassword, useremail, profileImage: profileImageUrl });
     await user.save();
 
     res.status(201).json(user);
@@ -86,6 +102,16 @@ export const updateUser = async (req, res) => {
 
       otherData.useremail = useremail; 
     }
+
+    let profileImageUrl = null;
+    if (req.file) {
+      const uploadResult = await cloudinary.v2.uploader.upload(req.file.path, {
+        folder: 'user_profiles'
+      });
+      profileImageUrl = uploadResult.secure_url;
+      otherData.profileImage = profileImageUrl;
+    }
+
     const user = await User.findByIdAndUpdate(req.params.id, otherData, { new: true });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -103,5 +129,37 @@ export const deleteUser = async (req, res) => {
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUserHistory = async (req, res) => {
+  try {
+      const user = await User.findById(req.user.id)
+          .select('userCompleted userTranslations')
+          .populate('userCompleted.question_id', 'questionText')
+          .exec();
+
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      const history = [
+          ...user.userCompleted.map(item => ({
+              type: 'question',
+              question_id: item.question_id,
+              date: item.date_of_completion,
+              details: item.question_id?.questionText || 'Question details unavailable' // Adjust as necessary
+          })),
+          ...user.userTranslations.map(item => ({
+              type: 'translation',
+              phrase: item.phrase,
+              translation: item.translation,
+              date: item.date
+          }))
+      ].sort((a, b) => b.date - a.date);
+
+      res.json(history);
+  } catch (error) {
+      res.status(500).json({ message: error.message });
   }
 };

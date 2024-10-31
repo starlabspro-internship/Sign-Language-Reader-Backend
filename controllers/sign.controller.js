@@ -2,6 +2,7 @@ import cloudinary from 'cloudinary';
 import fs from 'fs';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '../configuration.js';
 import Sign from '../models/Sign.model.schema.js';
+import User from '../models/User.model.schema.js';
 
 cloudinary.v2.config({
     cloud_name: CLOUDINARY_CLOUD_NAME,
@@ -10,7 +11,6 @@ cloudinary.v2.config({
 });
 
 // create sign
-
 export const createSign = async (req, res) => {
     try {
         const { name } = req.body;
@@ -115,6 +115,18 @@ export const translateSigns = async (req, res) => {
         } else {
             translation.push({ word, error: "unsupported word" });
         }
+    }
+
+    if (req.user) {
+        await User.findByIdAndUpdate(req.user.id, {
+            $push: {
+                userTranslations: {
+                    phrase,
+                    translation,
+                    date: new Date()
+                }
+            }
+        });
     }
 
     res.json({ translation });
