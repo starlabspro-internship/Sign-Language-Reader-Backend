@@ -7,6 +7,7 @@ import userRoutes from './routes/user.routes.js';
 import questionRoutes from './routes/question.routes.js'; 
 import signRoutes from './routes/sign.routes.js';
 import chapterRoutes from './routes/chapter.routes.js';
+import faqRoutes from './routes/faq.routes.js';
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/signs', signRoutes);
+app.use('/api/faq', faqRoutes);
+
 
 // Connect to the database and start the server
 mongoose.connect(DB_LINK)
