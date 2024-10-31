@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { createUser, getUsers, getUserById, updateUser, deleteUser } from '../controllers/user.controller.js';
+import { createUser, getUsers, getUserById, updateUser, deleteUser, getUserHistory } from '../controllers/user.controller.js';
 import { check } from 'express-validator';
 import { signup, login, logout } from '../controllers/userAccount.controller.js';
 import auth from '../middlewares/auth.middleware.js';
@@ -16,7 +16,7 @@ router.post('/', upload.single('profileImage'), validateImageFormat, createUser)
 // Get all users
 router.get('/', getUsers);
 
-// Get user logged in
+// Get status login
 router.get('/me', auth, (req, res) => {
     const token = req.cookies.token;
     if (!token) {
@@ -33,6 +33,9 @@ router.get('/me', auth, (req, res) => {
         res.status(403).json({ message: 'Failed Token Verification', error });
     }
 });
+
+// get user history by id
+router.get('/history', auth, getUserHistory);
 
 // Get user by id 
 router.get('/:id', getUserById);

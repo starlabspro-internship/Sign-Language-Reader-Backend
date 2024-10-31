@@ -131,3 +131,35 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getUserHistory = async (req, res) => {
+  try {
+      const user = await User.findById(req.user.id)
+          .select('userCompleted userTranslations')
+          .populate('userCompleted.question_id', 'questionText')
+          .exec();
+
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      const history = [
+          ...user.userCompleted.map(item => ({
+              type: 'question',
+              question_id: item.question_id,
+              date: item.date_of_completion,
+              details: item.question_id?.questionText || 'Question details unavailable' // Adjust as necessary
+          })),
+          ...user.userTranslations.map(item => ({
+              type: 'translation',
+              phrase: item.phrase,
+              translation: item.translation,
+              date: item.date
+          }))
+      ].sort((a, b) => b.date - a.date);
+
+      res.json(history);
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+};
