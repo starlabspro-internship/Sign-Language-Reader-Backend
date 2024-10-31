@@ -1,12 +1,12 @@
 import express from 'express';
-import { getFaqs, createFaq } from '../controllers/faq.controller.js';
+import { getFAQuestions, createFAQuestions } from '../controllers/faq.controller.js';
 
 const router = express.Router();
 
 // Route to get all FAQs
-router.get('/', getFaqs);
+router.get('/', getFAQuestions);
 
 // Route to create a new FAQ
-router.post('/', createFaq);
+router.post('/', createFAQuestions);
 
 export default router;
