@@ -16,7 +16,6 @@ const UserSchema = new Schema({
   }],
   userTranslations: [{
     phrase: { type: String, required: true },
-    translation: [{ word: String, image: String, error: String }],
     date: { type: Date, default: Date.now }
   }]
 });

@@ -118,17 +118,20 @@ export const translateSigns = async (req, res) => {
     }
 
     if (req.user) {
-        await User.findByIdAndUpdate(req.user.id, {
-            $push: {
-                userTranslations: {
-                    phrase,
-                    translation,
-                    date: new Date()
+        try {
+            await User.findByIdAndUpdate(req.user.id, {
+                $push: {
+                    userTranslations: {
+                        phrase,
+                        date: new Date()
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error("Error saving translation phrase:", error);
+            return res.status(500).json({ message: "Failed to save translation phrase." });
+        }
     }
 
     res.json({ translation });
 };
-
