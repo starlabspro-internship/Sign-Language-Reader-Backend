@@ -9,8 +9,9 @@ export const getFaqs = async (req, res) => {
 
     const faqs = await FAQ.find();
     res.status(200).json(faqs);
+
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching FAQs', error: error.message });
+      res.status(500).json({ message: error.message });
   }
 };
 
@@ -26,8 +27,9 @@ export const createFaq = async (req, res) => {
 
     await faq.save();
     res.status(201).json({ message: 'FAQ created successfully.', faq });
+
   } catch (error) {
-    res.status(500).json({ message: 'Error creating FAQ.', error: error.message });
+      res.status(500).json({ message: error.message });
   }
 };
 
@@ -71,4 +73,5 @@ export const deleteFaq = async (req, res) => {
     res.status(500).json({ message: 'Error deleting FAQ.', error: error.message });
   }
 };
+
 
