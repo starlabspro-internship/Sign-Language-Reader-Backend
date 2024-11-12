@@ -12,4 +12,5 @@ router.post('/', auth, createFaq);
 router.put('/:id', auth, updateFaq);
 router.delete('/:id', auth, deleteFaq);
 
+
 export default router;
