@@ -1,52 +1,76 @@
 import FAQ from '../models/faq.model.js';
+import User from '../models/user.model.js'; 
 
-export const getFAQuestions = async (req, res) => {
+export const getFaqs = async (req, res) => {
   try {
-      const duplicates = await Question.aggregate([
-          {
-              $group: {
-                  _id: { description: "$description" },  // Group by description (add name here if needed)
-                  count: { $sum: 1 },
-                  questions: { $push: "$$ROOT" }  // Collect all question documents in each duplicate group
-              }
-          },
-          {
-              $sort: { count: -1}  // Sort by count in descending order
-          },
-          {
-              $limit: 10  // Limit results to the top 10
-          }
-      ]);
+    if (!req.user || !req.user.userIsAdmin) {
+      return res.status(403).json({ message: 'You need to be an admin to view all the FAQ-s.' });
+    }
 
-      // If no duplicates are found, return a message
-      if (duplicates.length === 0) {
-          return res.status(200).json({message: "No duplicate questions found."});
-      }
-      return res.status(200).json({ 'questions': duplicates });
-          
+    const faqs = await FAQ.find();
+    res.status(200).json(faqs);
 
   } catch (error) {
       res.status(500).json({ message: error.message });
   }
 };
 
-
-export const createFAQuestions = async (req, res) => {
+export const createFaq = async (req, res) => {
   try {
-      const questionData = {
-          name: req.body.name,
-          description: req.body.description,
-          question_image: req.body.question_image,
-          chapter: req.body.chapter,
-          question_solutions: req.body.question_solutions
-      };
+    const { question } = req.body;
 
-      // Insert the question document
-      const question = await Question.create(questionData); // Insert a single question document
-      res.status(201).json(question);
-      
+    if (!question) {
+      return res.status(400).json({ message: 'Question is required.' });
+    }
+
+    const faq = new FAQ({ question, answer: '' });
+
+    await faq.save();
+    res.status(201).json({ message: 'FAQ created successfully.', faq });
+
   } catch (error) {
       res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateFaq = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { answer } = req.body;
+
+    if (!req.user || !req.user.userIsAdmin) {
+      return res.status(403).json({ message: 'You need to be an admin in order to wtrite the answer to the faq.' });
+    }
+
+    const faq = await FAQ.findByIdAndUpdate(id, { answer }, { new: true });
+
+    if (!faq) {
+      return res.status(404).json({ message: 'FAQ not found.' });
+    }
+
+    res.status(200).json({ message: 'FAQ updated successfully.', faq });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating FAQ.', error: error.message });
+  }
+};
+
+export const deleteFaq = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.user || !req.user.userIsAdmin) {
+      return res.status(403).json({ message: 'You need to be an admin in order to delete a faq.' });
+    }
+
+    const faq = await FAQ.findByIdAndDelete(id);
+
+    if (!faq) {
+      return res.status(404).json({ message: 'FAQ not found.' });
+    }
+
+    res.status(200).json({ message: 'FAQ deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting FAQ.', error: error.message });
   }
 };
 
