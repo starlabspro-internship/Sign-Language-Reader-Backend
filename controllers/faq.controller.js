@@ -92,8 +92,6 @@ export const updateFaq = async (req, res) => {
   }
 };
 
-
-
 export const deleteFaq = async (req, res) => {
   try {
     const { id } = req.params;
