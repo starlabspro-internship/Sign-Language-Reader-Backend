@@ -2,7 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { createUser, getUsers, getUserById, updateUser, deleteUser, getUserHistory } from '../controllers/user.controller.js';
 import { check } from 'express-validator';
-import { signup, login, logout } from '../controllers/userAccount.controller.js';
+import { signup, login, logout, createAdmin } from '../controllers/userAccount.controller.js';
 import auth from '../middlewares/auth.middleware.js';
 import upload from '../middlewares/upload.middleware.js';
 import validateImageFormat from '../middlewares/validateImageFormat.middleware.js';
@@ -41,7 +41,8 @@ router.get('/history', auth, getUserHistory);
 router.get('/:id', getUserById);
 
 // update user by id
-router.put('/:id', upload.single('profileImage'), validateImageFormat, updateUser);
+// router.put('/:id', upload.single('profileImage'), validateImageFormat, updateUser);
+router.put('/:id', updateUser);
 
 // Delete user by id
 router.delete('/:id', deleteUser);
@@ -53,6 +54,14 @@ router.post('/signup', [
     check('useremail', 'Please include a valid email').isEmail(),
     check('userpassword', 'Password must be at least 8 characters long').isLength({ min: 8 }),
 ], signup);
+
+// admin creation
+router.post('/createAdmin', auth, [
+    check('userName', 'Name is required').not().isEmpty(),
+    check('userSurname', 'Surname is required').not().isEmpty(),
+    check('useremail', 'Please include a valid email').isEmail(),
+    check('userpassword', 'Password must be at least 8 characters long').isLength({ min: 8 }),
+], createAdmin);
 
 // login
 router.post('/login', [
