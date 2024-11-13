@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 
 const UserSchema = new Schema({
   userName: { type: String, required: true },
-  userpicture: { type: String },
+  userpicture: { type: String, default: 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541' },
   userSurname: { type: String, required: true },
   useremail: { type: String, required: true, unique: true },
   userphonenum: { type: String },

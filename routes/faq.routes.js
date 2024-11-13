@@ -1,16 +1,15 @@
 import express from 'express';
-import { getFaqs, createFaq, updateFaq, deleteFaq } from '../controllers/faq.controller.js';
-import auth from '../middleware/auth.middleware.js';
-
+import { getFaqsPublic, getFaqsAdmin, createFaq, updateFaq, deleteFaq } from '../controllers/faq.controller.js';
+import auth from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.get('/', auth, getFaqs);
+router.get('/', getFaqsPublic);
+
+router.get('/admin', auth, getFaqsAdmin);
 
 router.post('/', auth, createFaq);
-
 router.put('/:id', auth, updateFaq);
-
 router.delete('/:id', auth, deleteFaq);
 
 
