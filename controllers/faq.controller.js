@@ -39,7 +39,7 @@ export const createFaq = async (req, res) => {
       }
 
       if (!req.user || !req.user.userIsAdmin) {
-        return res.status(403).json({ message: 'Admin privileges required to showcase FAQs.' });
+        return res.status(403).json({ message: 'You need to be an admin to view all the FAQs.' });
       }
 
       if (!answer) {
