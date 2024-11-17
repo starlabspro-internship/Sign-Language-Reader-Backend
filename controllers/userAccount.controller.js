@@ -5,7 +5,12 @@ import User from "../models/User.model.schema.js";
 import config from "../configuration.js";
 
 export const createSendToken = (user, res) => {
-  const payload = { user: { id: user.id, userIsAdmin: user.userIsAdmin } };
+  const payload = {
+    user: {
+      id: user._id,
+      userIsAdmin: user.userIsAdmin,
+    },
+  };
 
   const token = jwt.sign(payload, config.JWT_SECRET, { expiresIn: "15m" });
   const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN_SECRET, {
@@ -41,8 +46,7 @@ export const signup = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { userName, userSurname, useremail, userpassword, userphonenum } =
-    req.body;
+  const { userName, userSurname, useremail, userpassword, userphonenum } = req.body;
 
   try {
     let user = await User.findOne({ useremail });
@@ -56,13 +60,14 @@ export const signup = async (req, res) => {
       useremail,
       userpassword,
       userphonenum,
+      userpicture: req.file ? `/uploads/${req.file.filename}` : 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+
     });
 
     const salt = await bcrypt.genSalt(10);
     user.userpassword = await bcrypt.hash(userpassword, salt);
 
     await user.save();
-
     createSendToken(user, res);
   } catch (err) {
     console.error(err.message);
@@ -112,6 +117,7 @@ export const createAdmin = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
 
 export const login = async (req, res) => {
   const errors = validationResult(req);

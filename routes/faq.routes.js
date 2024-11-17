@@ -1,12 +1,16 @@
 import express from 'express';
-import { getFAQuestions, createFAQuestions } from '../controllers/faq.controller.js';
+import { getFaqsPublic, getFaqsAdmin, createFaq, updateFaq, deleteFaq } from '../controllers/faq.controller.js';
+import auth from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Route to get all FAQs
-router.get('/', getFAQuestions);
+router.get('/', getFaqsPublic);
 
-// Route to create a new FAQ
-router.post('/', createFAQuestions);
+router.get('/admin', auth, getFaqsAdmin);
+
+router.post('/', auth, createFaq);
+router.put('/:id', auth, updateFaq);
+router.delete('/:id', auth, deleteFaq);
+
 
 export default router;
