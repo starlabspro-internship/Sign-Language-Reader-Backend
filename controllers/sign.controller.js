@@ -104,12 +104,35 @@ export const deleteSign = async (req, res) => {
 
 export const translateSigns = async (req, res) => {
     const { phrase } = req.query;
-    const words = phrase.trim().split(/\s+/);
 
+    // Mapping for normalization of Albanian-specific letters
+    const normalizationMap = {
+        'ç': ['c', 'ç'],
+        'e': ['e', 'ë'],
+        'gj': ['gj', 'g'],
+        'xh': ['xh', 'x']
+    };
+
+    // Helper function to normalize words
+    const normalizeWord = (word) => {
+        let normalizedWord = word.toLowerCase();
+
+        for (const [canonical, alternatives] of Object.entries(normalizationMap)) {
+            for (const alt of alternatives) {
+                normalizedWord = normalizedWord.replace(new RegExp(alt, 'g'), canonical);
+            }
+        }
+
+        return normalizedWord;
+    };
+
+    const words = phrase.trim().split(/\s+/);
     const translation = [];
 
     for (const word of words) {
-        const sign = await Sign.findOne({ name: word.toLowerCase() });
+        const normalizedWord = normalizeWord(word);
+        const sign = await Sign.findOne({ name: normalizedWord });
+
         if (sign) {
             translation.push({ word, image: sign.signImage });
         } else {
