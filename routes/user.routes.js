@@ -2,7 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { createUser, getUsers, getUserById, updateUser, deleteUser, getUserHistory } from '../controllers/user.controller.js';
 import { check } from 'express-validator';
-import { signup, login, logout, createAdmin } from '../controllers/userAccount.controller.js';
+import { signup, login, logout, createAdmin, createGuest, guestLogin } from '../controllers/userAccount.controller.js';
 import auth from '../middlewares/auth.middleware.js';
 import upload from '../middlewares/upload.middleware.js';
 import validateImageFormat from '../middlewares/validateImageFormat.middleware.js';
@@ -63,11 +63,23 @@ router.post('/createAdmin', auth, [
     check('userpassword', 'Password must be at least 8 characters long').isLength({ min: 8 }),
 ], createAdmin);
 
+router.post('/createGuest', [
+    check('userName', 'Name is required').not().isEmpty(),
+    check('userSurname', 'Surname is required').not().isEmpty(),
+    check('useremail', 'Please include a valid email').isEmail(),
+    check('userpassword', 'Password must be at least 8 characters long').isLength({ min: 8 }),
+], createGuest)
+
 // login
 router.post('/login', [
     check('useremail', 'Please include a valid email').isEmail(),
     check('userpassword', 'Password is required').exists(),
 ], login);
+
+router.post('/guestLogin', [
+    check('useremail', 'Invalid guest email').equals('guest@example.com')
+], guestLogin);
+
 
 // refresh token
 router.post('/refresh-token', async (req, res) => {
