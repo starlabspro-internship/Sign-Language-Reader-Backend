@@ -86,34 +86,53 @@ document.getElementById("signForm").addEventListener("submit", async (event) => 
 });
 
 // per translate
-
 document.getElementById("translateButton").addEventListener("click", async () => {
-    const input = document.getElementById("translateInput").value;
+    let input = document.getElementById("translateInput").value.trim();
     const resultsContainer = document.getElementById("translationResults");
-    resultsContainer.innerHTML = ''; 
+    resultsContainer.innerHTML = '';
 
     try {
+     
+
+        // Replace multi-word expressions in the input
+        for (const expression of Object.keys(multiWordExpressions)) {
+            const regex = new RegExp(`\\b${expression}\\b`, "gi");
+            input = input.replace(regex, multiWordExpressions[expression]);
+        }
+
+        // Send the processed input to the backend
         const response = await fetch(`http://localhost:5000/api/signs/translate?phrase=${encodeURIComponent(input)}`);
         const data = await response.json();
 
+        // Display translation results
         data.translation.forEach(item => {
+            const resultDiv = document.createElement("div");
+            resultDiv.style.margin = "10px";
+
             if (item.image) {
                 const img = document.createElement("img");
                 img.src = item.image;
                 img.alt = item.word;
-                img.style.margin = "10px";
-                resultsContainer.appendChild(img);
+                img.style.width = "100px";
+                img.style.height = "100px";
+                resultDiv.appendChild(img);
             } else {
                 const message = document.createElement("p");
-                message.textContent = `${item.word} could not be found for translation.`;
-                resultsContainer.appendChild(message);
+                message.textContent = `${item.word} nuk u gjet për përkthim.`;
+                resultDiv.appendChild(message);
             }
+
+            resultsContainer.appendChild(resultDiv);
         });
     } catch (error) {
         console.error("Error fetching translation:", error);
+        const errorMessage = document.createElement("p");
+        errorMessage.textContent = "An error occurred while fetching the translation. Please try again.";
+        resultsContainer.appendChild(errorMessage);
     }
 });
 
+// For checking login status
 document.getElementById("checkLoginStatusButton").addEventListener("click", async () => {
     try {
         const response = await fetch('https://localhost:5000/api/users/me', {
@@ -138,6 +157,3 @@ document.getElementById("checkLoginStatusButton").addEventListener("click", asyn
         alert("Network error occurred.");
     }
 });
-
-
-
