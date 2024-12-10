@@ -1,0 +1,35 @@
+name: Deploy Backend to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: 116.203.213.63
+          username: root
+          key: ${{ secrets.server }}
+          script: |
+            cd /var/www/Duarte/Sign-Language-Reader-Backend
+            git pull origin main
+            npm install
+            pm2 restart server
+
+      - name: Restart Nginx
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: 116.203.213.63
+          username: root
+          key: ${{ secrets.server }}
+          script: |
+            sudo systemctl restart nginx
