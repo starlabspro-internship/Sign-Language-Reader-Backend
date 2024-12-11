@@ -16,7 +16,7 @@ jobs:
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.5
         with:
-          host: 116.203.213.63
+          host: ${{ secrets.ip }}
           username: root
           key: ${{ secrets.server }}
           script: |
@@ -28,7 +28,7 @@ jobs:
       - name: Restart Nginx
         uses: appleboy/ssh-action@v0.1.5
         with:
-          host: 116.203.213.63
+          host: ${{ secrets.ip }}
           username: root
           key: ${{ secrets.server }}
           script: |
