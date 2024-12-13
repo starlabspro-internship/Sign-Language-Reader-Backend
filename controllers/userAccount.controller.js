@@ -118,6 +118,45 @@ export const createAdmin = async (req, res) => {
   }
 };
 
+export const createGuest = async (req, res) => {
+  const { userName, userSurname, useremail, userpassword } = req.body;
+
+  try {
+    console.log("req.user:", req.user);
+
+    let guestUser = await User.findOne({ userIsGuest: true });
+    if (guestUser) {
+      return res.status(400).json({ msg: "Guest user already exists" });
+    }
+
+    if (!req.user || req.userIsAdmin !== true) {
+      console.log("Authorization failed: User is not an admin");
+      return res.status(403).json({ msg: "Not authorized to create a guest user" });
+    }
+
+    guestUser = new User({
+      userName,
+      userSurname,
+      useremail,
+      userpassword,
+      userIsGuest: true, 
+    });
+
+    if (userpassword) {
+      const salt = await bcrypt.genSalt(10);
+      guestUser.userpassword = await bcrypt.hash(userpassword, salt);
+    } else {
+      return res.status(400).json({ msg: "Password is required" });
+    }
+
+    await guestUser.save();
+
+    res.status(201).json({ msg: "Guest user created successfully", user: guestUser });
+  } catch (err) {
+    console.error("Error in createGuest:", err.message);
+    res.status(500).send("Server error");
+  }
+};
 
 export const login = async (req, res) => {
   const errors = validationResult(req);
@@ -142,6 +181,32 @@ export const login = async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Serve error");
+  }
+};
+
+export const guestLogin = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { useremail } = req.body;
+
+  try {
+    let guestUser = await User.findOne({ useremail: "guest@example.com" }); 
+    if (!guestUser) {
+      return res.status(400).json({ msg: "Guest user not found" });
+    }
+
+    if (useremail !== "guest@example.com") {
+      return res.status(400).json({ msg: "Invalid email for guest login." });
+    }
+
+    createSendToken(guestUser, res); 
+
+  } catch (error) {
+    console.error('Error during guest login:', error);
+    return res.status(500).json({ msg: 'Server error during guest login' });
   }
 };
 
