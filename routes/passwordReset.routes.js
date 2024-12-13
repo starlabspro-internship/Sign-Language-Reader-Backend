@@ -7,7 +7,7 @@ import sendEmail from '../utils/sendEmail.js';
 const router = express.Router();
 
 let lastResetRequestTime = null;
-const cooldownPeriod = 2 * 60 * 1000; // 2 minutes in milliseconds
+const cooldownPeriod = 2 * 60 * 1000;
 
 // Password Reset Request Route
 router.post('/reset-password', async (req, res) => {
