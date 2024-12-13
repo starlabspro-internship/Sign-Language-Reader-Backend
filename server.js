@@ -13,6 +13,7 @@ import signRoutes from './routes/sign.routes.js';
 import chapterRoutes from './routes/chapter.routes.js';
 import faqRoutes from './routes/faq.routes.js';
 import passwordResetRoutes from './routes/passwordReset.routes.js';
+import userPosting from './routes/userPosting.routes.js';
 
 // Get the current file path and directory name
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +43,7 @@ app.use('/api/chapters', chapterRoutes);
 app.use('/api/signs', signRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/users', passwordResetRoutes);
+app.use('/api/post', userPosting);
 
 // Serve the home.html file on the base URL
 app.get('/', (req, res) => {
