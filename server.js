@@ -24,7 +24,7 @@ const app = express();
 // Middlewares
 app.use(cookieParser());
 app.use(cors({
-    origin: ['https://localhost:8080', 'http://127.0.0.1:5500'],
+    origin: ['https://duarte.devops99.pro', 'https://localhost:8080','http://127.0.0.1:5500'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
