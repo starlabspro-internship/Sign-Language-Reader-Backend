@@ -6,12 +6,22 @@ import sendEmail from '../utils/sendEmail.js';
 
 const router = express.Router();
 
+let lastResetRequestTime = null;
+const cooldownPeriod = 2 * 60 * 1000; // 2 minutes in milliseconds
+
 // Password Reset Request Route
 router.post('/reset-password', async (req, res) => {
-  const { useremail  } = req.body;
+  const { useremail } = req.body;
+  const now = Date.now();
+  if (lastResetRequestTime && now - lastResetRequestTime < cooldownPeriod) {
+    const timeRemaining = Math.floor((cooldownPeriod - (now - lastResetRequestTime)) / 1000);
+    return res.status(400).json({
+      message: `Please wait ${timeRemaining} seconds before trying again.`,
+    });
+  }
 
   try {
-    const user = await User.findOne({ useremail: useremail  });
+    const user = await User.findOne({ useremail: useremail });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -38,6 +48,8 @@ router.post('/reset-password', async (req, res) => {
       text: message,
     });
 
+    lastResetRequestTime = now;
+
     res.status(200).json({ message: 'Reset instructions sent to email.' });
 
   } catch (error) {
@@ -46,7 +58,7 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-// Password Reset Route (GET for displaying form, POST for submitting password reset)
+// Password Reset Route
 router
   .route('/reset-password/:token')
   .get(async (req, res) => {
@@ -55,15 +67,14 @@ router
     try {
       const user = await User.findOne({
         resetPasswordToken: token,
-        resetPasswordExpires: { $gt: Date.now() }, // Check if the token is expired
+        resetPasswordExpires: { $gt: Date.now() },
       });
 
       if (!user) {
         return res.status(400).json({ message: 'Invalid or expired token' });
       }
 
-      // Serve the password reset form page (could be a simple HTML page or a React component)
-      res.status(200).send("Password reset form"); // This would be the page rendered for user to input the new password
+      res.status(200).send("Password reset form");
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'An error occurred while loading the reset page.' });
@@ -88,20 +99,23 @@ router
       }
 
       // Update the user's password
-      const hashedPassword = await bcrypt.hash(userpassword, 10); // Hash the new password
+      const hashedPassword = await bcrypt.hash(userpassword, 10); 
       user.userpassword = hashedPassword;
-      user.resetPasswordToken = undefined; // Clear the token
-      user.resetPasswordExpires = undefined; // Clear the expiration
+      user.resetPasswordToken = undefined; 
+      user.resetPasswordExpires = undefined; 
 
       await user.save();
-
-      res.status(200).json({ message: 'Password has been successfully reset' });
+      
+      // Send back user's email for auto-login
+      res.status(200).json({ 
+        message: 'Password has been successfully reset',
+        email: user.useremail,  
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'An error occurred while resetting the password.' });
     }
   });
 
-
-
 export default router;
+
