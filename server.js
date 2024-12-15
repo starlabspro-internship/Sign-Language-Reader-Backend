@@ -33,7 +33,7 @@ app.use(cors({
 app.use(express.json());
 
 // Set the path for the frontend folder
-const frontendPath = path.join(__dirname, '../Sign-Language-Reader-Frontend');
+const frontendPath = path.resolve('/var/www/Sign-Language-Reader-Frontend');
 app.use(express.static(frontendPath));
 
 // Routes
