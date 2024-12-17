@@ -7,8 +7,10 @@ const CommentSchema = new Schema({
   dateCommentPosted: { type: Date, default: Date.now }, 
   commentText: { type: String, required: true },
   commentLikes: { type: Number, default: 0 },
+  commentLikedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }], 
   pinned: { type: Boolean, default: false }
 });
+
 
 const UserPostingSchema = new Schema({
   postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -18,10 +20,10 @@ const UserPostingSchema = new Schema({
   postingImages: { type: [String], validate: [arrayLimit, 'Exceeds the limit of 3 images'] }, 
   views: { type: Number, default: 0 }, 
   likes: { type: Number, default: 0 }, 
+  likedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }], 
   comments: [CommentSchema]
 });
 
-// limit sa imazhe mundesh me i shtu ne post
 function arrayLimit(val) {
   return val.length <= 3;
 }
