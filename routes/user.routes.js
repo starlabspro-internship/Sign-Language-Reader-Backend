@@ -7,6 +7,7 @@ import auth from '../middlewares/auth.middleware.js';
 import upload from '../middlewares/upload.middleware.js';
 import validateImageFormat from '../middlewares/validateImageFormat.middleware.js';
 import config from '../configuration.js';
+import User from '../models/User.model.schema.js';
 
 const router = express.Router();
 
@@ -17,20 +18,35 @@ router.post('/', upload.single('profileImage'), validateImageFormat, createUser)
 router.get('/', getUsers);
 
 // Get status login
-router.get('/me', auth, (req, res) => {
+router.get('/me', auth, async (req, res) => {
     const token = req.cookies.token;
     if (!token) {
         return res.status(401).json({ message: 'No token found, User is not logged in' });
     }
+
     try {
-        const user = req.user;
-        res.json({ 
-            message: `User info for: ${user.id}`, 
-            userId: user.id, 
-            token 
+        // Assuming `req.user` contains the logged-in user's ID
+        const userId = req.user.id;
+
+        // Fetch user details from the database
+        const user = await User.findById(userId).select('userName userSurname userpicture userIsAdmin');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Send the required fields along with the token
+        res.json({
+            message: `User info for: ${user.id}`,
+            userId: user.id,
+            token,
+            userName: user.userName,
+            userSurname: user.userSurname,
+            userpicture: user.userpicture,
+            userIsAdmin: user.userIsAdmin
         });
     } catch (error) {
-        res.status(403).json({ message: 'Failed Token Verification', error });
+        console.error("Error fetching user details:", error);
+        res.status(500).json({ message: 'Failed to fetch user details', error });
     }
 });
 
