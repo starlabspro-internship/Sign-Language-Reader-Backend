@@ -11,6 +11,8 @@ const UserSchema = new Schema({
   userIsAdmin: { type: Boolean, default: false },
   userIsGuest: { type: Boolean, default: false },
   userpassword: { type: String, required: true },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
   userCompleted: [{
     question_id: { type: Schema.Types.ObjectId, ref: 'Question', required: true },
     date_of_completion: { type: Date, default: Date.now }

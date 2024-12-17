@@ -12,6 +12,7 @@ import questionRoutes from './routes/question.routes.js';
 import signRoutes from './routes/sign.routes.js';
 import chapterRoutes from './routes/chapter.routes.js';
 import faqRoutes from './routes/faq.routes.js';
+import passwordResetRoutes from './routes/passwordReset.routes.js';
 import userPosting from './routes/userPosting.routes.js';
 
 // Get the current file path and directory name
@@ -41,6 +42,7 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/signs', signRoutes);
 app.use('/api/faq', faqRoutes);
+app.use('/api/users', passwordResetRoutes);
 app.use('/api/post', userPosting);
 
 // Serve the home.html file on the base URL
