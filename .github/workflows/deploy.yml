@@ -23,6 +23,8 @@ jobs:
             cd /var/www/Duarte/Sign-Language-Reader-Backend
             git reset --hard
             git pull origin main
+            rm -rf node_modules
+            rm -rf dist
             npm install
             pm2 restart server
 
