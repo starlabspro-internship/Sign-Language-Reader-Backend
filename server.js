@@ -33,7 +33,7 @@ app.use(cors({
 app.use(express.json());
 
 // Set the path for the frontend folder
-const frontendPath = path.resolve('/var/www/Sign-Language-Reader-Frontend');
+const frontendPath = path.resolve('/var/www/Sign-Language-Reader-Frontend/dist');
 app.use(express.static(frontendPath));
 
 // Routes
@@ -47,7 +47,7 @@ app.use('/api/post', userPosting);
 
 // Serve the home.html file on the base URL
 app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'home.html'));
+    res.sendFile(path.join(frontendPath, 'home.html'));  // Use frontendPath here
 });
 
 mongoose.connect(DB_LINK)
