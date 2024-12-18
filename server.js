@@ -45,9 +45,9 @@ app.use('/api/faq', faqRoutes);
 app.use('/api/users', passwordResetRoutes);
 app.use('/api/post', userPosting);
 
-// Serve the home.html file on the base URL
+// Serve the home.html 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'home.html'));  // Use frontendPath here
+    res.sendFile(path.join(frontendPath, 'home.html')); 
 });
 
 mongoose.connect(DB_LINK)
