@@ -32,9 +32,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Set the path for the frontend folder
-const frontendPath = path.resolve('/var/www/Sign-Language-Reader-Frontend/dist');
-app.use(express.static(frontendPath));
 
 // Routes
 app.use('/api/users', userRoutes);
@@ -44,6 +41,10 @@ app.use('/api/signs', signRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/users', passwordResetRoutes);
 app.use('/api/post', userPosting);
+
+// Set the path for the frontend folder
+const frontendPath = path.resolve(__dirname, '../Sign-Language-Reader-Frontend/dist');
+app.use(express.static(frontendPath));
 
 // Serve the home.html 
 app.get('/', (req, res) => {
