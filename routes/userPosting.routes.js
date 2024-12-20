@@ -1,5 +1,9 @@
 import express from 'express';
-import { createPost, editPost, deletePost, addComment, likePost, likeComment, pinComment, deleteComment, getAllPosts, getSinglePost } from '../controllers/userPosting.controller.js';
+import { createPost, editPost, deletePost, addComment, toggleLikePost,
+         likeComment, pinComment, deleteComment, getMostRecentPosts, 
+         getSinglePost, getMostActivePosts, getMostViewedPosts, 
+         getMostLikedPosts, getMostCommentedPosts, getUserPosts, 
+         getUserCommentedPosts, getUserLikedPosts } from '../controllers/userPosting.controller.js';
 import auth from '../middlewares/auth.middleware.js';
 import upload from '../middlewares/upload.middleware.js'; 
 import validateImageFormat from '../middlewares/validateImageFormat.middleware.js'; 
@@ -22,7 +26,6 @@ router.put( //tested
     editPost
 );
   
-
 router.delete( //tested
     '/delete/:id', 
     auth, 
@@ -35,16 +38,27 @@ router.post(
     addComment
 );
 
-router.post('/:id/like', auth, likePost);
+router.put('/:id/like', auth, toggleLikePost);
 
-router.post('/:postId/comments/:commentId/like', auth, likeComment);
+router.put('/:postId/comments/:commentId/like', auth, likeComment);
 
 router.put('/:postId/comments/:commentId/pin', auth, pinComment);
 
 router.delete('/:postId/comments/:commentId', auth, deleteComment);
 
 // PA NEVOJE AUTENTIFIKIMI
-router.get('/', getAllPosts);
+
+router.get('/most-active', getMostActivePosts);
+
+router.get('/most-viewed', getMostViewedPosts);
+router.get('/most-liked', getMostLikedPosts);
+router.get('/most-commented', getMostCommentedPosts);
+
+router.get('/user-posts', auth, getUserPosts);
+router.get('/user-commented', auth, getUserCommentedPosts);
+router.get('/user-liked', auth, getUserLikedPosts);
+
+router.get('/all', getMostRecentPosts); //most recen
 
 router.get('/:id', getSinglePost);
 

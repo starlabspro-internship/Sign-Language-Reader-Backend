@@ -21,6 +21,7 @@ export const createPost = async (req, res) => {
     }
 
     let uploadedImageUrls = [];
+
     if (imageFiles && imageFiles.length > 0) {
       for (const file of imageFiles) {
         const uploadResult = await cloudinary.v2.uploader.upload(file.path, {
@@ -52,7 +53,6 @@ export const createPost = async (req, res) => {
     res.status(500).json({ message: 'Error creating post', error: error.message });
   }
 };
-
 
 export const editPost = async (req, res) => {
 try {
@@ -133,8 +133,7 @@ export const addComment = async (req, res) => {
 
       const newComment = {
         postedBy: userId,
-        commentText,
-        dateCommentPosted: Date.now(),
+        commentText
       };
   
       post.comments.push(newComment);
@@ -147,71 +146,95 @@ export const addComment = async (req, res) => {
     }
 };
 
-export const likePost = async (req, res) => {
-    try {
-      const postId = req.params.id;
-  
-      const post = await UserPosting.findById(postId);
-      if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
-      }
-  
-      post.likes += 1; 
-      await post.save();
-  
-      res.status(200).json({ message: 'Post liked successfully', likes: post.likes });
-    } catch (error) {
-      console.error("Error liking post:", error);
-      res.status(500).json({ message: 'Error liking post', error: error.message });
+export const toggleLikePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user.id; 
+
+    const post = await UserPosting.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
     }
+
+    const userIndex = post.likedBy.findIndex(id => id.toString() === userId);
+
+    if (userIndex !== -1) {
+      post.likedBy.splice(userIndex, 1); 
+      post.likes -= 1;
+    } else {
+      post.likedBy.push(userId);
+      post.likes += 1;
+    }
+
+    await post.save();
+    res.status(200).json({ message: 'Post like toggled successfully', likes: post.likes });
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    res.status(500).json({ message: 'Error toggling like', error: error.message });
+  }
 };
-  
+
 
 export const likeComment = async (req, res) => {
-    try {
-      const { postId, commentId } = req.params;
-  
-      const post = await UserPosting.findById(postId);
-      if (!post) return res.status(404).json({ message: 'Post not found' });
-  
-      const comment = post.comments.id(commentId);
-      if (!comment) return res.status(404).json({ message: 'Comment not found' });
-  
-      comment.commentLikes += 1; 
-      await post.save();
-  
-      res.status(200).json({ message: 'Comment liked successfully', commentLikes: comment.commentLikes });
-    } catch (error) {
-      console.error("Error liking comment:", error);
-      res.status(500).json({ message: 'Error liking comment', error: error.message });
+  try {
+    const postId = req.params.postId;
+    const commentId = req.params.commentId;
+    const userId = req.user.id;
+
+    const post = await UserPosting.findById(postId);
+    if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
     }
+
+    const comment = post.comments.id(commentId); 
+    if (!comment) {
+        return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const userIndex = comment.commentLikedBy.findIndex(id => id.toString() === userId);
+
+    if (userIndex !== -1) {
+        comment.commentLikedBy.splice(userIndex, 1); 
+        comment.commentLikes -= 1;
+    } else {
+        comment.commentLikedBy.push(userId);
+        comment.commentLikes += 1;
+    }
+
+    await post.save();
+    res.status(200).json({ message: 'Comment like toggled successfully', likesCount: comment.commentLikes });
+} catch (error) {
+    console.error("Error toggling like:", error);
+    res.status(500).json({ message: 'Error toggling like', error: error.message });
+}
 };
   
 export const pinComment = async (req, res) => {
-    try {
+  try {
       const { postId, commentId } = req.params;
       const userId = req.user.id;
-  
+
       const post = await UserPosting.findById(postId);
       if (!post) return res.status(404).json({ message: 'Post not found' });
-  
+
       if (post.postedBy.toString() !== userId) {
-        return res.status(403).json({ message: 'Only the post creator can pin comments' });
+          return res.status(403).json({ message: 'Only the post creator can pin comments' });
       }
-  
+
       const comment = post.comments.id(commentId);
       if (!comment) return res.status(404).json({ message: 'Comment not found' });
-  
-      post.comments.forEach(c => c.pinned = false);
-      comment.pinned = true;
-  
+      comment.pinned = !comment.pinned;
+
       await post.save();
-  
-      res.status(200).json({ message: 'Comment pinned successfully', pinnedComment: comment });
-    } catch (error) {
+
+      res.status(200).json({
+          message: comment.pinned ? 'Comment pinned successfully' : 'Comment unpinned successfully',
+          pinnedComment: comment
+      });
+  } catch (error) {
       console.error("Error pinning comment:", error);
       res.status(500).json({ message: 'Error pinning comment', error: error.message });
-    }
+  }
 };
   
 export const deleteComment = async (req, res) => {
@@ -244,33 +267,200 @@ export const deleteComment = async (req, res) => {
     }
 };
 
-export const getAllPosts = async (req, res) => {
-    try {
-      const posts = await UserPosting.find().populate('postedBy', 'userName'); 
-      res.status(200).json(posts);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      res.status(500).json({ message: 'Error fetching posts', error: error.message });
-    }
-};  
-  
+export const getMostActivePosts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const posts = await UserPosting.find({ postedBy: { $ne: null } })
+      .populate('postedBy', 'userName userSurname userpicture');
+
+    const postsWithInteractions = posts.map(post => {
+      const totalInteractions = (post.views || 0) * 1 
+                              + (post.likes || 0) * 2    
+                              + (post.comments?.length || 0) * 3;  
+      return { ...post.toObject(), totalInteractions };  
+    });
+    postsWithInteractions.sort((a, b) => b.totalInteractions - a.totalInteractions);
+
+    const paginatedPosts = postsWithInteractions.slice(offset, offset + limit);
+
+    res.status(200).json(paginatedPosts);
+  } catch (error) {
+    console.error("Error fetching most active posts:", error);
+    res.status(500).json({ message: 'Error fetching active posts', error: error.message });
+  }
+};
+
+export const getMostRecentPosts = async (req, res) => {
+  try {
+    const { limit = 10, offset = 0 } = req.query;
+
+    const posts = await UserPosting.find({ postedBy: { $ne: null } })  
+      .populate('postedBy', 'userName userSurname userpicture')  
+      .skip(parseInt(offset))
+      .limit(parseInt(limit))
+      .sort({ datePosted: -1 });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching recent posts:", error);
+    res.status(500).json({ message: 'Error fetching posts', error: error.message });
+  }
+};
+
+export const getMostViewedPosts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const posts = await UserPosting.find({ postedBy: { $ne: null } })
+      .populate('postedBy', 'userName userSurname userpicture'); 
+
+    const postsWithViewCounts = posts.map(post => {
+      const viewCount = post.views || 0;  
+      return { ...post.toObject(), viewCount };  
+    });
+
+    postsWithViewCounts.sort((a, b) => b.viewCount - a.viewCount);
+
+    const paginatedPosts = postsWithViewCounts.slice(offset, offset + limit);
+
+    res.status(200).json(paginatedPosts);
+  } catch (error) {
+    console.error("Error fetching most-viewed posts:", error);
+    res.status(500).json({ message: 'Error fetching most-viewed posts', error: error.message });
+  }
+};
+
+export const getMostLikedPosts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const posts = await UserPosting.find({ postedBy: { $ne: null } })
+      .populate('postedBy', 'userName userSurname userpicture'); 
+
+    const postsWithLikeCounts = posts.map(post => {
+      const likeCount = post.likes || 0;  
+      return { ...post.toObject(), likeCount };  
+    });
+
+    postsWithLikeCounts.sort((a, b) => b.likeCount - a.likeCount);
+
+    const paginatedPosts = postsWithLikeCounts.slice(offset, offset + limit);
+
+    res.status(200).json(paginatedPosts);
+  } catch (error) {
+    console.error("Error fetching most-liked posts:", error);
+    res.status(500).json({ message: 'Error fetching most-liked posts', error: error.message });
+  }
+};
+
+export const getMostCommentedPosts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const posts = await UserPosting.find({ postedBy: { $ne: null } })
+      .populate('postedBy', 'userName userSurname userpicture'); 
+
+    const postsWithCommentCounts = posts.map(post => {
+      const commentCount = post.comments?.length || 0; 
+      return { ...post.toObject(), commentCount };
+    });
+
+    postsWithCommentCounts.sort((a, b) => b.commentCount - a.commentCount);
+    const paginatedPosts = postsWithCommentCounts.slice(offset, offset + limit);
+    res.status(200).json(paginatedPosts);
+  } catch (error) {
+    console.error("Error fetching most-commented posts:", error);
+    res.status(500).json({ message: 'Error fetching most-commented posts', error: error.message });
+  }
+};
+
+export const getUserPosts = async (req, res) => {
+  try {
+    const userId = req.user.id; 
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const posts = await UserPosting.find({ postedBy: userId })
+      .skip(offset)
+      .limit(limit)
+      .populate('postedBy', 'userName userSurname userpicture');
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    res.status(500).json({ message: 'Error fetching user posts', error: error.message });
+  }
+};
+
+export const getUserCommentedPosts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const posts = await UserPosting.find({
+      'comments.postedBy': { _id: userId }, 
+    })
+      .skip(offset)
+      .limit(limit)
+      .populate('postedBy', 'userName userSurname userpicture')
+      .populate('comments.postedBy', 'userName userSurname userpicture'); 
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error('Error fetching user commented posts:', error);
+    res.status(500).json({ message: 'Error fetching user commented posts', error: error.message });
+  }
+};
+
+
+export const getUserLikedPosts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const posts = await UserPosting.find({ likedBy: userId })
+      .skip(offset)
+      .limit(limit)
+      .populate('postedBy', 'userName userSurname userpicture');
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching user liked posts:", error);
+    res.status(500).json({ message: 'Error fetching user liked posts', error: error.message });
+  }
+};
+
 export const getSinglePost = async (req, res) => {
-    try {
+  try {
       const postId = req.params.id;
-  
-      const post = await UserPosting.findById(postId).populate('postedBy', 'userName');
+
+      const post = await UserPosting.findById(postId)
+          .populate('postedBy', 'userName userSurname userpicture') 
+          .populate({
+              path: 'comments.postedBy',
+              select: 'userName userSurname userpicture'
+          });
+
       if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
+          return res.status(404).json({ message: 'Post not found' });
       }
-  
+
       post.views += 1;
       await post.save();
-  
+
       res.status(200).json(post);
-    } catch (error) {
+  } catch (error) {
       console.error("Error fetching single post:", error);
       res.status(500).json({ message: 'Error fetching post', error: error.message });
-    }
+  }
 };
+
   
   
