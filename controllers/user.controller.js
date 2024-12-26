@@ -109,7 +109,7 @@ export const updateUser = async (req, res) => {
         folder: 'user_profiles'
       });
       profileImageUrl = uploadResult.secure_url;
-      otherData.profileImage = profileImageUrl;
+      otherData.userpicture = profileImageUrl;
     }
 
     const user = await User.findByIdAndUpdate(req.params.id, otherData, { new: true });
