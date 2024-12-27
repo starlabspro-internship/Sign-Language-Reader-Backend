@@ -57,8 +57,8 @@ router.get('/history', auth, getUserHistory);
 router.get('/:id', getUserById);
 
 // update user by id
-// router.put('/:id', upload.single('profileImage'), validateImageFormat, updateUser);
-router.put('/:id', updateUser);
+router.put('/:id', upload.single('userpicture'), validateImageFormat, updateUser);
+// router.put('/:id', updateUser);
 
 // Delete user by id
 router.delete('/:id', deleteUser);
